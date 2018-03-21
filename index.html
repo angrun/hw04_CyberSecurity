@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Anna hacker</title>	
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">		
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<script>
+		$(function() {
+			// Hide form elements
+			$("input[name='md5_mode']").change(function(){
+				$('div.bruteforce').hide();
+				if(this.value == 1){
+					$('div.bruteforce').show();
+				}
+			});		
+			
+			$("select[name='mode']").change(function(){
+				$("input[name='cipher']").hide();
+				$("div.md5_mode").hide();
+				
+				if(this.value == 0 || this.value == 1){
+					$("input[name='cipher']").show();
+				}
+				
+				if(this.value == 3){
+					$("div.md5_mode").show();
+				}
+			});
+			
+			$("form.hasher").submit(function(e) {
+				e.preventDefault(); // prevent form default behaviour
+				$('div.loader-bg-overlay').fadeIn( 1000 );
+				$.ajax({
+					   type: "POST",
+					   url: "ajax.php",
+					   data: $("form.hasher").serialize(), // serializes form
+					   success: function(data)
+					   {
+							var jsonData = $.parseJSON(data);
+							if(jsonData.errors){
+								$("div#errors").empty();
+								jsonData.errors.forEach(function(entry) {
+									$("div#errors").show().append(entry + '<br>');
+								});					
+							} else {
+								$("div#errors").hide();
+							}
+
+							if(jsonData.result){
+								$("textarea#result").html(jsonData.result);
+						    }
+
+					   },
+					   complete: function(){
+						   $('div.loader-bg-overlay').hide();
+					   }
+					 });
+			});			
+
+		});		
+		</script>
+		<style>
+			.loader-bg-overlay {
+				position: absolute;
+				background-color: RGBA(0,0,0,0.6);
+				width: 100%;
+				height: 100%;
+				z-index:999;
+				top: 0px;
+			}
+			.loader {
+				position: fixed;
+				top: 50%;
+				left: 0; 
+				right: 0; 
+				margin-top: -50px;
+				margin-left: auto; 
+				margin-right: auto; 
+				border: 16px solid #f3f3f3;
+				border-top: 16px solid #3498db;
+				border-radius: 50%;
+				width: 120px;
+				height: 120px;
+				animation: spin 2s linear infinite;
+			}
+
+			@keyframes spin {
+				0% { transform: rotate(0deg); }
+				100% { transform: rotate(360deg); }
+			}		
+		</style>
+	</head>
+
+	<body>
+		<div class="loader-bg-overlay" style="display: none;">
+			<div class="loader"></div>
+		</div>
+		<div class="container">
+			<div class="row mt-5">
+				<div class="col-lg-4 col-md-6 col-xs-12"><img src="assets/img/trollface.jpg"></div>
+				<div class="col-lg-8 col-md-6 col-xs-12">
+					<h3 class="mb-4">NEED SOME HASH?</h3>
+					<div id="errors" class="alert alert-danger" style="display: none;"></div>
+					<form method="POST" class="hasher" action="#">
+						<div class="form-group">
+							<input type="text" class="form-control" name="string" placeholder="Input">
+						</div>
+						<div class="form-group">
+							<input type="text" class="form-control" name="cipher" placeholder="Enter cipher">
+						</div>
+						<div class="form-group">
+							<select name="mode" class="form-control">
+								<option value="0">OTP Encrypt</option>
+								<option value="1">OTP Decrypt</option>
+								<option value="2">Sha-512 Encrypt</option>
+								<option value="3">MD5 Decrypt</option>
+							</select>
+						</div>
+						<div class="md5_mode" style="display: none;">
+							<legend class="col-form-label pt-0">Decrypt method</legend>
+							<div class="form-check form-check-inline mb-3">
+								<input class="form-check-input" type="radio" id="database" name="md5_mode" id="database" value="0" checked>
+								<label class="form-check-label" for="database">Database lookup</label>
+							</div>
+							<div class="form-check form-check-inline mb-3">
+								<input class="form-check-input" type="radio" id="bruteforce" name="md5_mode" value="1">
+								<label class="form-check-label" for="bruteforce">Bruteforce</label>
+							</div>				
+							<div class="bruteforce" style="display: none;">
+								<div class="form-group">
+									<label for="bf_maxlenght">Max length</label>
+									<input type="text" class="form-control" id="bf_maxlenght" name="bf_maxlenght"  value="3">
+								</div>	
+								
+								<legend class="col-form-label pt-0">Bruteforce dictionary</legend>
+								<div class="form-check">
+									<input class="form-check-input" name="dict[]" type="checkbox" value="0" id="bf_mode_1" checked>
+									<label class="form-check-label" for="bf_mode_1">abcdefghijklmnopqrstuvwxyz</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" name="dict[]" type="checkbox" value="1" id="bf_mode_2">
+									<label class="form-check-label" for="bf_mode_2">ABCDEFGHIJKLMNOPQRSTUVWXYZ</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" name="dict[]" type="checkbox" value="2" id="bf_mode_3">
+									<label class="form-check-label" for="bf_mode_3">0123456789</label>
+								</div>						
+								<div class="form-check form-group">
+									<input class="form-check-input" name="dict[]" type="checkbox" value="3" id="bf_mode_4">
+									<label class="form-check-label" for="bf_mode_4">~`!@#$%^&*()-_\/\'";:,.+=<>?</label>
+								</div>						
+							</div>
+						</div>	
+						<div class="form-group">
+							<textarea class="form-control" rows="3" id="result" name="result" placeholder="Result" disabled></textarea>
+						</div>
+						<input type="hidden" name="process" value="1">
+						<input type="submit" name="submit" class="btn btn-primary" value="Submit">
+					</form>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
